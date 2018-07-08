@@ -21,7 +21,7 @@ This is an ad-hoc script that Wazim Mohammed Ismail had written using python to 
 Since, the break-points are specified by TE_pipeline, you would need to get the correct file type using TE_pipeline before running the script. Once you have the results <SV>, you can run the script using the following command:
 
 ./indexMapSort.py  <reference>  <reads1> <reads2>  
-teAllele.py <SV> ./sorted.bam  <outdir> 
+./teAllele.py <SV> ./sorted.bam  <outdir> 
 
 where,
 <reference> = reference file in fasta format
