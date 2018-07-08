@@ -1,0 +1,104 @@
+This file provide guideline of the entire pipeline (including test data) to: 
+1), run our program to detect TE insertions
+2), run the simulateTE to simulate TE insertions
+3), run the Maximum-likelihood method to estimate TE allele frequencies 
+3), list the necessary TE insertion data of daphnia pulex KAP population
+
+
+1), There are two programs we used to detect the presence and absence of a TE insertion,respectively.
+
+1.1, TE_pipeline (folder):
+This is used to detect the number of reads supporting the presence of TE insertions, which is written by Heewook Lee and has been published before (Lee et al. 2014). There is a README file inside the "TE_pipeline" direction. The author give explanation and how to run your own data.  I put some initial data in each folder to make sure the program can be tested as follows. Read README and go over before you run the pipeline for other datasets.
+
+Example:
+cd Yourpathway/TE_pipeline/
+./build.sh  ./parameters/11.IS.parameter
+./TE_pipeline.sh  ./TE_pipeline/parameters/11.IS.parameter
+
+1.2, TEscripts (folder):
+This is an ad-hoc script that Wazim Mohammed Ismail had written using python to calculate the number of reads supporting each allele (wild-type vs. structural-variant) of the structural variation events.
+
+Since, the break-points are specified by TE_pipeline, you would need to get the correct file type using TE_pipeline before running the script. Once you have the results <SV>, you can run the script using the following command:
+
+./indexMapSort.py  <reference>  <reads1> <reads2>  
+teAllele.py <SV> ./sorted.bam  <outdir> 
+
+where,
+<reference> = reference file in fasta format
+<reads1>, <reads2> = paired end reads in fastq format
+<SV> = .SV file reported by TE_pipeline
+./sorted.bam is produced by indexMapSort.py 
+<outdir> = path of output by Grasper  
+
+Pre-requisites:
+1. Python 2.5 or above
+2. BWA
+3. Samtools
+
+Output:
+Same as TE_pipeline output (.SV file) but with additional two columns in the beginning. 
+Column1: Number of reads supporting wild-type (i.e. No structural variation compared to the reference)
+Column2: Number of reads supporting structural variation. 
+
+Example:
+cd Yourpathway/TEscripts/
+./indexMapSort.py   mylandscape.fa   11_1.fastq   22_2.fastq  ./ 
+./teAllele.py 11.1.txt ./sorted.bam  ./
+
+
+2), The simulation of reads is produced by simulaTE, which is a recently published software (https://sourceforge.net/projects/simulates/). Please download and see the guildline to run your own data. The following is an example using one scaffold from daphnia reference genome and a daphnia TE library as input to get the paired-end fastq files. With the produced reads, you can estimate effectiveness of TE detection algorithms.
+
+Example data:
+<scaffold-1-noN.fa.masked>: clean daphnia scaffold_1 assembly masked by RepeatMasker 
+<te-50.fa>: 50 TE sequences from published daphnia TE library (Jiang et al. 2017)
+
+Scripts:
+python Yourpathway/simulaTE/simulate/define-landscape_random-insertions-freq-range.py --chassis scaffold-1-noN.fa.masked --te-seqs te-50.fa --insert-count 100 --min-freq 1 --max-freq 1 --min-distance 500 --N 10 --output mylandscape.pgd
+
+python Yourpathway/simulaTE/simulate/build-population-genome.py --pgd mylandscape.pgd --te-seqs te-50.fa --chassis scaffold-1-noN.fa.masked --output mylandscape.pg
+
+python Yourpathway/simulaTE/simulate/read_pool-seq_illumina-PE.py --pg mylandscape.pg --read-length 100 --inner-distance 300 --std-dev 50 --error-rate 0.01 --reads 750000 --fastq1 reads_1.fastq --fastq2 reads_2.fastq 
+
+3), The following several simply perl scripts were used to test the ML method, which were written by Xiaoqian Jiang.
+
+3.1 p0p1.pl:
+This script was used to estimate allele frequencies using the ML method. A typical use as follows, as well as the subsequent perl scripts:
+
+3.2 s1=s2=0.pl:
+This script was used to produce the allele frequencies in neutral models.
+
+3.3 s1=0.5s2.pl, s1=s2.pl and s1ors2.pl:
+These scripts were used to test the selection power in 3 typical selection models. 
+
+Example:
+perl p0p1.pl kap-reference.sum kap-reference.list > fraction.xxx
+
+where the illustration of kap-reference.sum kap-reference.list files has been demonstrated in the following data files.
+
+If you have any questions of running these scripts, please contact the authors.
+
+
+4）, The dataset include:
+4.1, Data used to simulate daphnia pulex reads to test TE_pipeline:
+<scaffold-1-noN.fa.masked>: clean daphnia scaffold_1 assembly masked by RepeatMasker 
+<te-50.fa>: 50 TE sequences from published daphnia TE library (Jiang et al. 2017)
+
+4.2, kap-reference.list, kap-non-reference.list:
+List the details of searched TE insertions in each clone of KAP population.
+
+The illustration of the column is:
+name of TE**location of scaffold**(position/10KBp), clone_name position, observed genotype, reads supporing presence of TE, reads supporting absence of TE
+PA42_1001_1933_2531_LTR_Copia**scaffold_156**0,	KAP-00004,	1933,	noinsert,	0,	8
+
+4.3, kap-reference.sum, kap-non-reference.sum:
+Summarized the total TE insertion information in daphnia KAP population.
+
+The illustration of the column is:
+name of TE**location of scaffold**(position/10KBp), number of genotype(++), number of genotype(+-), number of genotype(--), total clone number, proportion of ++, proportion of +-, proportion of +-, theta
+
+PA42_1001_1933_2531_LTR_Copia**scaffold_156**0	62	1	0	63	0.984126984126984	0.0158730158730159	0	0.35
+
+The other used meta data of Daphnia has been published previously, if you have any problems in accessing the data, please contact the authors:
+ daphnia pulex reference assembly PA42 (Ye et al. 2017)
+ whole TE library of daphnia pulex (Jiang et al. 2017)
+ KAP population sequencing data (Lynch et al. 2016)
