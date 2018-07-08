@@ -2,7 +2,7 @@ This file provide guideline of the entire pipeline (including test data) to:
 1), run our program to detect TE insertions
 2), run the simulateTE to simulate TE insertions
 3), run the Maximum-likelihood method to estimate TE allele frequencies 
-3), list the necessary TE insertion data of daphnia pulex KAP population
+4), list the necessary TE insertion data of daphnia pulex KAP population
 
 
 1), There are two programs we used to detect the presence and absence of a TE insertion,respectively.
